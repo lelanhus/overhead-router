@@ -1,0 +1,80 @@
+{
+  "name": "@overhead/router",
+  "version": "1.0.0",
+  "description": "Declarative, type-safe routing for the Overhead framework. Small, fast, and framework-agnostic.",
+  "main": "dist/router.js",
+  "module": "dist/router.mjs",
+  "types": "dist/router.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/router.d.ts",
+      "import": "./dist/router.mjs",
+      "require": "./dist/router.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.mjs",
+      "require": "./dist/utils.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "API.md",
+    "DATA_MODEL.md",
+    "DESIGN.md",
+    "PERFORMANCE.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/router.ts src/utils.ts --format cjs,esm --dts",
+    "dev": "tsup src/router.ts src/utils.ts --format cjs,esm --dts --watch",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "router",
+    "routing",
+    "typescript",
+    "declarative",
+    "type-safe",
+    "spa",
+    "navigation",
+    "history-api",
+    "lightweight",
+    "framework-agnostic",
+    "vanilla-js",
+    "semantic-html",
+    "overhead",
+    "overhead-framework"
+  ],
+  "author": "Leland Husband",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lelandhusband/overhead-router.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lelandhusband/overhead-router/issues"
+  },
+  "homepage": "https://github.com/lelandhusband/overhead-router#readme",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "sideEffects": false
+}
