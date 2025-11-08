@@ -34,6 +34,42 @@ GitHub Actions runs on every push to `main` and all pull requests:
 
 All CI checks must pass before merging PRs.
 
+## Security & Dependency Management
+
+### Security Workflow
+Automated security scanning runs on every push, PR, and weekly schedule:
+
+**Dependency Audit:**
+- Checks for known vulnerabilities in dependencies
+- Fails on high/critical severity issues
+- Weekly scheduled scans
+
+**CodeQL Analysis:**
+- Static code analysis for security vulnerabilities
+- Runs security-and-quality query suite
+- Detects common security issues (SQL injection, XSS, etc.)
+
+**OSSF Scorecard:**
+- Evaluates supply chain security practices
+- Checks for security policy, branch protection, signed releases
+- Publishes results to GitHub Security tab
+
+### Dependabot
+Automated dependency updates configured for:
+
+**NPM Dependencies:**
+- Weekly updates (Mondays at 9 AM UTC)
+- Groups minor/patch updates by type (dev vs production)
+- Auto-labels PRs with `dependencies` and `automated`
+- Commit format: `chore(deps): update dependencies`
+
+**GitHub Actions:**
+- Weekly updates to action versions
+- Auto-labels PRs with `github-actions` and `automated`
+- Commit format: `chore(ci): update actions`
+
+All Dependabot PRs are reviewed before merging.
+
 ## Code Style
 - Use ES modules (import/export), never CommonJS in source
 - Named exports only (no default exports)
