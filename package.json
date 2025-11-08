@@ -68,7 +68,7 @@
   "homepage": "https://github.com/lelandhusband/overhead-router#readme",
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^10.1.8",
