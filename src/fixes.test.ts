@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createRouter, route } from './router';
+import { createRouter, route } from './router.js';
 
 // Mock browser globals with proper types
 global.window = {
@@ -222,8 +222,8 @@ describe('Critical Fixes', () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(document.addEventListener).not.toHaveBeenCalled();
 
-      // Router should still work (routes compiled)
-      expect(router['compiledRoutes']).toHaveLength(1);
+      // Router should still work (routes compiled - static route goes in staticRoutes Map)
+      expect(router['staticRoutes'].size + router['compiledRoutes'].length).toBe(1);
     });
 
     it('works normally in non-SSR mode', () => {

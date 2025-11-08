@@ -4,8 +4,25 @@
  */
 
 /**
- * Extract parameter names from a path string
+ * Extract parameter names from a path string using recursive template literal types
+ *
+ * This type provides compile-time route parameter validation with ZERO runtime cost.
+ * The TypeScript compiler infers parameter types directly from route path templates.
+ *
  * @example ExtractParams<'/users/:id/posts/:postId'> = { id: string; postId: string }
+ *
+ * CRITICAL: DO NOT SIMPLIFY to Record<string, string>
+ * This would break type inference and lose compile-time route validation.
+ *
+ * How it works:
+ * 1. Pattern matches against '/:param/' (middle parameters)
+ * 2. Recursively processes remaining Suffix
+ * 3. Combines results using intersection (&)
+ * 4. Falls back to '/:param' for final parameter
+ * 5. Returns Record<string, never> for paths without parameters
+ *
+ * Performance: Computed at compile-time, zero runtime overhead
+ * Type safety: Invalid parameter access is a compile error, not runtime error
  */
 export type ExtractParams<Path extends string> =
   Path extends `${infer _Prefix}/:${infer Param}/${infer Suffix}`
@@ -135,6 +152,23 @@ export interface CompiledRoute<Path extends string = string> {
 
 /**
  * Router state - discriminated union for type-safe state management
+ *
+ * Uses the discriminated union pattern with a 'status' field to enable
+ * exhaustive pattern matching and type narrowing.
+ *
+ * @example
+ * function handleState(state: RouterState) {
+ *   switch (state.status) {
+ *     case 'matched':
+ *       // TypeScript knows state.match exists here
+ *       return state.match.route;
+ *     case 'error':
+ *       // TypeScript knows state.error exists here
+ *       return state.error;
+ *     // ... handle other cases
+ *   }
+ *   // TypeScript will error if you miss a case (exhaustive checking)
+ * }
  */
 export type RouterState =
   | { readonly status: 'idle' }
@@ -144,6 +178,33 @@ export type RouterState =
 
 /**
  * Navigation errors - discriminated union for type-safe error handling
+ *
+ * CRITICAL: This discriminated union pattern enforces exhaustive error handling.
+ * The 'type' field enables TypeScript to narrow types in switch statements.
+ *
+ * Benefits:
+ * - Compile-time guarantee all error cases are handled
+ * - Type narrowing gives access to case-specific fields
+ * - Adding new error types causes compile errors in incomplete handlers
+ * - Self-documenting - all error cases visible in one place
+ *
+ * Common pitfalls:
+ * - Don't add a generic 'catch-all' case - breaks exhaustive checking
+ * - Don't use if/else chains - use switch for better type inference
+ * - Each type must be unique - duplicates break discriminated unions
+ *
+ * @example
+ * function handleError(error: NavigationError) {
+ *   switch (error.type) {
+ *     case 'not-found':
+ *       // error.path is string
+ *       return show404(error.path);
+ *     case 'loader-error':
+ *       // error.error is Error, error.route is Route
+ *       return showError(error.error, error.route);
+ *     // ... TypeScript enforces handling all 7 cases
+ *   }
+ * }
  */
 export type NavigationError =
   | { readonly type: 'not-found'; readonly path: string }

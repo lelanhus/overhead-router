@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Route } from './router.types.js';
 import {
   buildPath,
   buildQuery,
@@ -8,13 +9,11 @@ import {
   debounce,
   PerformanceMonitor,
   ScrollRestoration,
-  generateBreadcrumbs,
   pathMatches,
   getActiveClass,
   createRouteBuilder,
   validatePath,
-} from './utils';
-import type { Route, RouteMatch } from './router.types';
+} from './utils.js';
 
 // Mock DOM APIs for browser-dependent utilities
 global.window = {
@@ -157,60 +156,6 @@ describe('Pure Functions', () => {
     it('supports custom class names', () => {
       const result = getActiveClass('/home', '/home', 'is-active');
       expect(result).toBe('is-active');
-    });
-  });
-
-  describe('generateBreadcrumbs', () => {
-    it('returns empty array for null match', () => {
-      const result = generateBreadcrumbs(null);
-      expect(result).toEqual([]);
-    });
-
-    it('generates breadcrumbs from path segments', () => {
-      const match: RouteMatch = {
-        path: '/users/123/posts',
-        route: { path: '/users/:id/posts', component: () => ({}) } as any,
-        params: {} as any,
-        query: new URLSearchParams(),
-        hash: '',
-      };
-
-      const result = generateBreadcrumbs(match);
-      expect(result).toEqual([
-        { path: '/users', title: 'users' },
-        { path: '/users/123', title: '123' },
-        { path: '/users/123/posts', title: 'posts' },
-      ]);
-    });
-
-    it('uses route meta title if available', () => {
-      const match: RouteMatch = {
-        path: '/users',
-        route: {
-          path: '/users',
-          component: () => ({}),
-          meta: { title: 'User Management' },
-        } as any,
-        params: {} as any,
-        query: new URLSearchParams(),
-        hash: '',
-      };
-
-      const result = generateBreadcrumbs(match);
-      expect(result).toEqual([{ path: '/users', title: 'User Management' }]);
-    });
-
-    it('handles root path', () => {
-      const match: RouteMatch = {
-        path: '/',
-        route: { path: '/', component: () => ({}) } as any,
-        params: {} as any,
-        query: new URLSearchParams(),
-        hash: '',
-      };
-
-      const result = generateBreadcrumbs(match);
-      expect(result).toEqual([]);
     });
   });
 

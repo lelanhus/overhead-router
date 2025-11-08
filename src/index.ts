@@ -3,11 +3,11 @@
  * @module sane-router
  */
 
-export { Router, createRouter, route } from './router';
+export { Router, createRouter, route } from './router.js';
 export type {
   Route,
   RouterConfig,
   RouteMatch,
   NavigateOptions,
   ExtractParams,
-} from './router.types';
+} from './router.types.js';

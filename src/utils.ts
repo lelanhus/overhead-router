@@ -2,7 +2,7 @@
  * Utility functions for declarative, type-safe routing
  */
 
-import type { Route, RouteMatch, ExtractParams } from './router.types';
+import type { Route, ExtractParams } from './router.types.js';
 
 /**
  * Type-safe link builder
@@ -12,14 +12,11 @@ export function buildPath<Path extends string>(
   path: Path,
   params: ExtractParams<Path>
 ): string {
-  let result = path as string;
-
-  // Replace :param with actual values
-  for (const [key, value] of Object.entries(params)) {
-    result = result.replace(`:${key}`, encodeURIComponent(value));
-  }
-
-  return result;
+  // Replace :param with actual values using reduce
+  return Object.entries(params).reduce(
+    (result, [key, value]) => result.replace(`:${key}`, encodeURIComponent(value)),
+    path as string
+  );
 }
 
 /**
@@ -35,7 +32,7 @@ export function buildQuery(params: Record<string, string | number | boolean | un
   }
 
   const query = searchParams.toString();
-  return query ? `?${query}` : '';
+  return query !== '' ? `?${query}` : '';
 }
 
 /**
@@ -47,7 +44,7 @@ export function buildUrl<Path extends string>(
   query?: Record<string, string | number | boolean | undefined>
 ): string {
   const builtPath = buildPath(path, params);
-  const builtQuery = query ? buildQuery(query) : '';
+  const builtQuery = query !== undefined ? buildQuery(query) : '';
   return builtPath + builtQuery;
 }
 
@@ -79,10 +76,10 @@ export function createPrefetchHandler(router: { prefetch: (path: string) => Prom
 
   return (e: MouseEvent) => {
     const target = (e.target as HTMLElement).closest('a[href]');
-    if (!target) return;
+    if (target === null) return;
 
     const href = target.getAttribute('href');
-    if (!href || prefetched.has(href)) return;
+    if (href === null || prefetched.has(href)) return;
 
     // Mark as prefetched
     prefetched.add(href);
@@ -124,7 +121,8 @@ export interface PerformanceMetrics {
 }
 
 export class PerformanceMonitor {
-  private readonly metrics: PerformanceMetrics[] = [];
+  // Mutable for performance monitoring - rolling window of last 100 navigations
+  private metrics: PerformanceMetrics[] = [];
 
   /**
    * Start tracking performance metrics for a navigation
@@ -140,12 +138,8 @@ export class PerformanceMonitor {
    * @param metrics - The performance metrics to record
    */
   recordMetrics(metrics: PerformanceMetrics): void {
-    this.metrics.push(metrics);
-
-    // Keep last 100 navigations only
-    if (this.metrics.length > 100) {
-      this.metrics.shift();
-    }
+    // Keep last 100 navigations only - use immutable pattern
+    this.metrics = [...this.metrics, metrics].slice(-100);
   }
 
   /**
@@ -186,10 +180,10 @@ class PerformanceTracker {
     const endTime = performance.now();
 
     return {
-      matchTime: this.marks.matchEnd ? this.marks.matchEnd - this.startTime : 0,
-      guardTime: this.marks.guardEnd ? this.marks.guardEnd - (this.marks.matchEnd ?? this.startTime) : 0,
-      loaderTime: this.marks.loaderEnd ? this.marks.loaderEnd - (this.marks.guardEnd ?? this.startTime) : 0,
-      componentTime: this.marks.componentEnd ? this.marks.componentEnd - (this.marks.loaderEnd ?? this.startTime) : 0,
+      matchTime: this.marks['matchEnd'] !== undefined ? this.marks['matchEnd'] - this.startTime : 0,
+      guardTime: this.marks['guardEnd'] !== undefined ? this.marks['guardEnd'] - (this.marks['matchEnd'] ?? this.startTime) : 0,
+      loaderTime: this.marks['loaderEnd'] !== undefined ? this.marks['loaderEnd'] - (this.marks['guardEnd'] ?? this.startTime) : 0,
+      componentTime: this.marks['componentEnd'] !== undefined ? this.marks['componentEnd'] - (this.marks['loaderEnd'] ?? this.startTime) : 0,
       totalTime: endTime - this.startTime,
     };
   }
@@ -227,37 +221,31 @@ export class ScrollRestoration {
   }
 }
 
-/**
- * Generate route breadcrumbs from nested routes
- * @deprecated Use router.getBreadcrumbs() instead for proper route lookup
- */
-export function generateBreadcrumbs(match: RouteMatch | null): Array<{ path: string; title: string }> {
-  if (!match) return [];
-
-  const breadcrumbs: Array<{ path: string; title: string }> = [];
-  const pathSegments = match.path.split('/').filter(Boolean);
-
-  let currentPath = '';
-  for (const segment of pathSegments) {
-    currentPath += `/${segment}`;
-    const metaTitle = match.route.meta?.title;
-    const title = typeof metaTitle === 'string' ? metaTitle : segment;
-    breadcrumbs.push({ path: currentPath, title });
-  }
-
-  return breadcrumbs;
-}
 
 /**
- * Check if a path matches a pattern
- * Useful for active link highlighting
+ * Check if a path matches a pattern with segment boundary enforcement
+ * @param currentPath - Current path to check
+ * @param pattern - Pattern to match against
+ * @param exact - Whether to require exact match (default: false = prefix match)
+ *
+ * Prefix matching enforces segment boundaries to prevent false positives:
+ * - pathMatches('/home/about', '/home') → true ✓
+ * - pathMatches('/homer', '/home') → false ✓ (boundary check prevents match)
  */
 export function pathMatches(currentPath: string, pattern: string, exact = false): boolean {
   if (exact) {
     return currentPath === pattern;
   }
 
-  return currentPath.startsWith(pattern);
+  // Exact match at any point
+  if (currentPath === pattern) return true;
+
+  // Check if starts with pattern
+  if (!currentPath.startsWith(pattern)) return false;
+
+  // Enforce segment boundary: character after pattern must be '/'
+  // This prevents '/home' from matching '/homer'
+  return currentPath[pattern.length] === '/';
 }
 
 /**
@@ -302,7 +290,7 @@ export function createRouteBuilder<const TRoutes extends ReadonlyArray<Route>>(
       path: P,
       params: ExtractParams<P>
     ): Promise<void> => {
-      if (!router) {
+      if (router === undefined) {
         throw new Error('Router instance required for navigate()');
       }
       const url = buildPath(path, params);

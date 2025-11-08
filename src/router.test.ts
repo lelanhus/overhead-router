@@ -4,23 +4,9 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { createRouter, route } from './router';
+import { createRouter, route } from './router.js';
 
-// Mock DOM APIs with proper types
-interface MockWindow {
-  location: { pathname: string; search: string };
-  history: { pushState: ReturnType<typeof vi.fn>; replaceState: ReturnType<typeof vi.fn> };
-  addEventListener: ReturnType<typeof vi.fn>;
-  scrollTo: ReturnType<typeof vi.fn>;
-  scrollY?: number;
-}
-
-interface MockDocument {
-  addEventListener: ReturnType<typeof vi.fn>;
-  querySelectorAll: ReturnType<typeof vi.fn>;
-  removeEventListener?: ReturnType<typeof vi.fn>;
-}
-
+// Mock DOM APIs
 global.window = {
   location: { pathname: '/', search: '', hash: '' },
   history: {
@@ -320,7 +306,8 @@ describe('Router', () => {
 
       const router = createRouter({ routes: filteredRoutes });
 
-      expect(router['compiledRoutes']).toHaveLength(1);
+      // Static routes go in staticRoutes Map, dynamic routes in compiledRoutes array
+      expect(router['staticRoutes'].size + router['compiledRoutes'].length).toBe(1);
     });
 
     it('supports route metadata', () => {
@@ -347,8 +334,8 @@ describe('Router', () => {
         ],
       });
 
-      // Routes are pre-compiled
-      expect(router['compiledRoutes']).toHaveLength(2);
+      // Routes are pre-compiled (both are static routes)
+      expect(router['staticRoutes'].size + router['compiledRoutes'].length).toBe(2);
     });
 
     it('extracts parameter names at compile time', () => {
@@ -407,7 +394,8 @@ describe('Declarative API Benefits', () => {
 
     const router = createRouter({ routes: allRoutes });
 
-    expect(router['compiledRoutes']).toHaveLength(6); // 2 public + 1 admin + 3 admin children
+    // Total: 2 public static + 1 admin static + 3 admin static children = 6 total
+    expect(router['staticRoutes'].size + router['compiledRoutes'].length).toBe(6);
   });
 
   it('routes can be filtered based on conditions', () => {
@@ -423,10 +411,11 @@ describe('Declarative API Benefits', () => {
 
     const routes = isDevelopment
       ? allRoutes
-      : allRoutes.filter((r) => !r.meta?.devOnly);
+      : allRoutes.filter((r) => !r.meta?.['devOnly']);
 
     const router = createRouter({ routes });
 
-    expect(router['compiledRoutes']).toHaveLength(1); // Only home route
+    // Only home route (which is static)
+    expect(router['staticRoutes'].size + router['compiledRoutes'].length).toBe(1);
   });
 });

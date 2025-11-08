@@ -3,7 +3,7 @@
 Declarative, type-safe routing library for the Overhead framework. Framework-agnostic, ~4KB gzipped.
 
 ## Tech Stack
-- TypeScript 5.3+ (strict mode)
+- TypeScript 5.9+ (strict mode + NodeNext modules)
 - Build: tsup (dual ESM/CJS output)
 - Testing: Vitest
 - Runtime: Bun (dev), Node 18+ (users)
@@ -14,6 +14,25 @@ Declarative, type-safe routing library for the Overhead framework. Framework-agn
 - bun run typecheck: Run TypeScript compiler checks
 - bun run lint: Run ESLint
 - bun run format: Run Prettier
+- bun run format:check: Check Prettier formatting (CI)
+
+## CI/CD Pipeline
+GitHub Actions runs on every push to `main` and all pull requests:
+
+### Quality Checks Job
+- **Type checking** - `bun run typecheck` (catches type errors)
+- **Linting** - `bun run lint` (enforces code quality rules)
+- **Formatting** - `bun run format:check` (ensures consistent style)
+- **Tests** - `bun test` (runs all 80 tests)
+- **Build** - `bun run build` (verifies production build)
+- **Bundle size check** - Warns if gzipped bundle exceeds 7KB
+
+### Test Matrix Job
+- Tests on **Node.js 18, 20, 22** to ensure compatibility
+- Uses Bun for fast dependency installation
+- Runs full test suite on each Node version
+
+All CI checks must pass before merging PRs.
 
 ## Code Style
 - Use ES modules (import/export), never CommonJS in source
@@ -21,6 +40,42 @@ Declarative, type-safe routing library for the Overhead framework. Framework-agn
 - TypeScript strict mode enabled
 - Functional, immutable patterns preferred
 - JSDoc all public APIs
+
+## TypeScript/ESLint Strict Configuration
+This codebase enforces **90-95% compile-time error detection** through strict TypeScript and ESLint rules.
+
+### TypeScript Compiler Flags
+- **Module System**: `NodeNext` with `verbatimModuleSyntax: true` (pure ESM, explicit `.js` extensions required)
+- **Type Safety**: `exactOptionalPropertyTypes`, `noImplicitReturns`, `noPropertyAccessFromIndexSignature`
+- **Dead Code**: `noUnusedLocals`, `noUnusedParameters`, `allowUnreachableCode: false`
+- **Interop**: `esModuleInterop: false` (no synthetic imports)
+
+### ESLint Rules
+- **strict-boolean-expressions**: All conditionals must use explicit null/undefined/empty checks
+  - ❌ `if (str)` → ✅ `if (str !== '')`
+  - ❌ `if (obj)` → ✅ `if (obj !== null)`
+  - ❌ `obj?.field` → ✅ `obj?.field !== undefined`
+- **prefer-readonly**: All class fields that aren't reassigned must be `readonly`
+- **consistent-type-imports**: Use `import type` for type-only imports
+
+### Immutability Patterns
+**Preferred patterns:**
+- **Array building**: Accumulation arrays + `join()` instead of string concatenation
+- **Conditional values**: Ternary expressions or IIFE instead of `let` reassignment
+- **Transformations**: `map()`, `reduce()`, `filter()` instead of `for` loops with `push()`
+- **Array updates**: Spread + `slice()` instead of `push()/shift()`
+
+**Justified exceptions (only 3 in entire codebase):**
+1. `let data` in `Router.navigate()` - Complex try-catch error handling flow
+2. `let timeoutId` in `debounce()` - Closure requirement for timer management
+3. `metrics` array in `PerformanceMonitor` - Uses immutable reassignment pattern (`[...arr, item].slice(-100)`)
+
+### Import Requirements
+All relative imports MUST include `.js` extension due to NodeNext module resolution:
+```typescript
+import { Router } from './router.js';  // ✅ Required
+import { Router } from './router';     // ❌ Compilation error
+```
 
 ## Architecture Principles
 - **Declarative over imperative** - Routes are data structures
@@ -85,11 +140,12 @@ loader: ({ params, query, hash, signal }) => fetch(url, { signal })
 **Reason:** Query/hash change frequently without route changes
 
 ## Quality Gates Before Release
-- ✓ All 84 tests passing
+- ✓ All 80 tests passing
 - ✓ No TypeScript errors (bun run typecheck)
+- ✓ No ESLint errors (bun run lint)
 - ✓ Bundle size within limits
 - ✓ No circular dependencies
-- ✓ Documentation updated (README, API.md, DATA_MODEL.md)
+- ✓ Documentation updated (README, API.md, DATA_MODEL.md, CLAUDE.md)
 
 ## Documentation Standards
 - JSDoc all public methods
@@ -113,5 +169,5 @@ route('/products/:id', {
 
 ## Version Constraints
 - Node.js: >= 18.0.0
-- TypeScript: >= 5.3.0
+- TypeScript: >= 5.9.0
 - Target browsers: Modern (Chrome 95+, Safari 16.4+, Firefox 120+)
