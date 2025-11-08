@@ -36,7 +36,10 @@ declare class URLPattern {
   constructor(input?: URLPatternInit | string, baseURL?: string);
 
   test(input?: URLPatternInit | string, baseURL?: string): boolean;
-  exec(input?: URLPatternInit | string, baseURL?: string): URLPatternResult | null;
+  exec(
+    input?: URLPatternInit | string,
+    baseURL?: string,
+  ): URLPatternResult | null;
 
   readonly protocol: string;
   readonly username: string;

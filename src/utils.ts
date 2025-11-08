@@ -2,7 +2,7 @@
  * Utility functions for declarative, type-safe routing
  */
 
-import type { Route, ExtractParams } from './router.types.js';
+import type { Route, ExtractParams } from "./router.types.js";
 
 /**
  * Type-safe link builder
@@ -10,19 +10,22 @@ import type { Route, ExtractParams } from './router.types.js';
  */
 export function buildPath<Path extends string>(
   path: Path,
-  params: ExtractParams<Path>
+  params: ExtractParams<Path>,
 ): string {
   // Replace :param with actual values using reduce
   return Object.entries(params).reduce(
-    (result, [key, value]) => result.replace(`:${key}`, encodeURIComponent(value)),
-    path as string
+    (result, [key, value]) =>
+      result.replace(`:${key}`, encodeURIComponent(value)),
+    path as string,
   );
 }
 
 /**
  * Type-safe query string builder
  */
-export function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
+export function buildQuery(
+  params: Record<string, string | number | boolean | undefined>,
+): string {
   const searchParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
@@ -32,7 +35,7 @@ export function buildQuery(params: Record<string, string | number | boolean | un
   }
 
   const query = searchParams.toString();
-  return query !== '' ? `?${query}` : '';
+  return query !== "" ? `?${query}` : "";
 }
 
 /**
@@ -41,10 +44,10 @@ export function buildQuery(params: Record<string, string | number | boolean | un
 export function buildUrl<Path extends string>(
   path: Path,
   params: ExtractParams<Path>,
-  query?: Record<string, string | number | boolean | undefined>
+  query?: Record<string, string | number | boolean | undefined>,
 ): string {
   const builtPath = buildPath(path, params);
-  const builtQuery = query !== undefined ? buildQuery(query) : '';
+  const builtQuery = query !== undefined ? buildQuery(query) : "";
   return builtPath + builtQuery;
 }
 
@@ -56,7 +59,7 @@ export async function preloadRoute(route: Route): Promise<void> {
   try {
     await route.component();
   } catch (error) {
-    console.warn('Failed to preload route:', error);
+    console.warn("Failed to preload route:", error);
   }
 }
 
@@ -71,14 +74,16 @@ export async function preloadRoutes(routes: Route[]): Promise<void> {
  * Link prefetch helper for declarative preloading
  * Usage: <a href="/products/123" onmouseenter={prefetchOn}>
  */
-export function createPrefetchHandler(router: { prefetch: (path: string) => Promise<void> }): (e: MouseEvent) => void {
+export function createPrefetchHandler(router: {
+  prefetch: (path: string) => Promise<void>;
+}): (e: MouseEvent) => void {
   const prefetched = new Set<string>();
 
   return (e: MouseEvent) => {
-    const target = (e.target as HTMLElement).closest('a[href]');
+    const target = (e.target as HTMLElement).closest("a[href]");
     if (target === null) return;
 
-    const href = target.getAttribute('href');
+    const href = target.getAttribute("href");
     if (href === null || prefetched.has(href)) return;
 
     // Mark as prefetched
@@ -97,7 +102,7 @@ export function createPrefetchHandler(router: { prefetch: (path: string) => Prom
  */
 export function debounce<T extends (...args: never[]) => unknown>(
   fn: T,
-  ms: number
+  ms: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
 
@@ -161,8 +166,10 @@ export class PerformanceMonitor {
     return {
       matchTime: this.metrics.reduce((sum, m) => sum + m.matchTime, 0) / count,
       guardTime: this.metrics.reduce((sum, m) => sum + m.guardTime, 0) / count,
-      loaderTime: this.metrics.reduce((sum, m) => sum + m.loaderTime, 0) / count,
-      componentTime: this.metrics.reduce((sum, m) => sum + m.componentTime, 0) / count,
+      loaderTime:
+        this.metrics.reduce((sum, m) => sum + m.loaderTime, 0) / count,
+      componentTime:
+        this.metrics.reduce((sum, m) => sum + m.componentTime, 0) / count,
       totalTime: this.metrics.reduce((sum, m) => sum + m.totalTime, 0) / count,
     };
   }
@@ -180,10 +187,23 @@ class PerformanceTracker {
     const endTime = performance.now();
 
     return {
-      matchTime: this.marks['matchEnd'] !== undefined ? this.marks['matchEnd'] - this.startTime : 0,
-      guardTime: this.marks['guardEnd'] !== undefined ? this.marks['guardEnd'] - (this.marks['matchEnd'] ?? this.startTime) : 0,
-      loaderTime: this.marks['loaderEnd'] !== undefined ? this.marks['loaderEnd'] - (this.marks['guardEnd'] ?? this.startTime) : 0,
-      componentTime: this.marks['componentEnd'] !== undefined ? this.marks['componentEnd'] - (this.marks['loaderEnd'] ?? this.startTime) : 0,
+      matchTime:
+        this.marks["matchEnd"] !== undefined
+          ? this.marks["matchEnd"] - this.startTime
+          : 0,
+      guardTime:
+        this.marks["guardEnd"] !== undefined
+          ? this.marks["guardEnd"] - (this.marks["matchEnd"] ?? this.startTime)
+          : 0,
+      loaderTime:
+        this.marks["loaderEnd"] !== undefined
+          ? this.marks["loaderEnd"] - (this.marks["guardEnd"] ?? this.startTime)
+          : 0,
+      componentTime:
+        this.marks["componentEnd"] !== undefined
+          ? this.marks["componentEnd"] -
+            (this.marks["loaderEnd"] ?? this.startTime)
+          : 0,
       totalTime: endTime - this.startTime,
     };
   }
@@ -210,7 +230,7 @@ export class ScrollRestoration {
    */
   restore(path: string): void {
     const position = this.scrollPositions.get(path) ?? 0;
-    window.scrollTo({ top: position, behavior: 'auto' });
+    window.scrollTo({ top: position, behavior: "auto" });
   }
 
   /**
@@ -220,7 +240,6 @@ export class ScrollRestoration {
     this.scrollPositions.clear();
   }
 }
-
 
 /**
  * Check if a path matches a pattern with segment boundary enforcement
@@ -232,7 +251,11 @@ export class ScrollRestoration {
  * - pathMatches('/home/about', '/home') → true ✓
  * - pathMatches('/homer', '/home') → false ✓ (boundary check prevents match)
  */
-export function pathMatches(currentPath: string, pattern: string, exact = false): boolean {
+export function pathMatches(
+  currentPath: string,
+  pattern: string,
+  exact = false,
+): boolean {
   if (exact) {
     return currentPath === pattern;
   }
@@ -245,7 +268,7 @@ export function pathMatches(currentPath: string, pattern: string, exact = false)
 
   // Enforce segment boundary: character after pattern must be '/'
   // This prevents '/home' from matching '/homer'
-  return currentPath[pattern.length] === '/';
+  return currentPath[pattern.length] === "/";
 }
 
 /**
@@ -254,10 +277,10 @@ export function pathMatches(currentPath: string, pattern: string, exact = false)
 export function getActiveClass(
   currentPath: string,
   linkPath: string,
-  activeClass = 'active',
-  exact = false
+  activeClass = "active",
+  exact = false,
 ): string {
-  return pathMatches(currentPath, linkPath, exact) ? activeClass : '';
+  return pathMatches(currentPath, linkPath, exact) ? activeClass : "";
 }
 
 /**
@@ -278,9 +301,9 @@ export function getActiveClass(
  */
 export function createRouteBuilder<const TRoutes extends ReadonlyArray<Route>>(
   routes: TRoutes,
-  router?: { navigate: (path: string) => Promise<void> }
+  router?: { navigate: (path: string) => Promise<void> },
 ) {
-  type RoutePaths = TRoutes[number]['path'];
+  type RoutePaths = TRoutes[number]["path"];
 
   return {
     /**
@@ -288,10 +311,10 @@ export function createRouteBuilder<const TRoutes extends ReadonlyArray<Route>>(
      */
     navigate: <P extends RoutePaths>(
       path: P,
-      params: ExtractParams<P>
+      params: ExtractParams<P>,
     ): Promise<void> => {
       if (router === undefined) {
-        throw new Error('Router instance required for navigate()');
+        throw new Error("Router instance required for navigate()");
       }
       const url = buildPath(path, params);
       return router.navigate(url);
@@ -300,10 +323,7 @@ export function createRouteBuilder<const TRoutes extends ReadonlyArray<Route>>(
     /**
      * Build a link URL for a route with type-safe parameters
      */
-    link: <P extends RoutePaths>(
-      path: P,
-      params: ExtractParams<P>
-    ): string => {
+    link: <P extends RoutePaths>(path: P, params: ExtractParams<P>): string => {
       return buildPath(path, params);
     },
 
@@ -313,7 +333,7 @@ export function createRouteBuilder<const TRoutes extends ReadonlyArray<Route>>(
     linkWithQuery: <P extends RoutePaths>(
       path: P,
       params: ExtractParams<P>,
-      query?: Record<string, string | number | boolean | undefined>
+      query?: Record<string, string | number | boolean | undefined>,
     ): string => {
       return buildUrl(path, params, query);
     },
@@ -340,7 +360,7 @@ export function createRouteBuilder<const TRoutes extends ReadonlyArray<Route>>(
  */
 export function validatePath<const TRoutes extends ReadonlyArray<Route>>(
   routes: TRoutes,
-  path: string
-): path is TRoutes[number]['path'] {
+  path: string,
+): path is TRoutes[number]["path"] {
   return routes.some((r) => r.path === path);
 }

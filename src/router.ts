@@ -10,23 +10,41 @@ import type {
   CompiledRoute,
   ExtractParams,
   LoaderContext,
-} from './router.types.js';
+} from "./router.types.js";
 
 /**
  * Cached route match - only stores stable route data
  * Query and hash are ephemeral and always fetched fresh from window.location
  */
-type CachedRouteMatch = Pick<RouteMatch, 'route' | 'params' | 'path'>;
+type CachedRouteMatch = Pick<RouteMatch, "route" | "params" | "path">;
 
 /**
  * Check if URLPattern API is available (modern browsers)
  */
-const HAS_URL_PATTERN = typeof URLPattern !== 'undefined';
+const HAS_URL_PATTERN = typeof URLPattern !== "undefined";
 
 /**
  * Router log prefix for consistent console messages
  */
-const ROUTER_PREFIX = '[Router]';
+const ROUTER_PREFIX = "[Router]";
+
+/**
+ * Tagged error for loader/component failures
+ * Allows us to distinguish between loader and component errors
+ */
+class TaggedError extends Error {
+  constructor(
+    public readonly errorType: "loader" | "component",
+    public readonly originalError: unknown,
+  ) {
+    super(
+      errorType === "loader"
+        ? "Loader failed during navigation"
+        : "Component failed during navigation",
+    );
+    this.name = "TaggedError";
+  }
+}
 
 /**
  * Simple LRU (Least Recently Used) cache for route matching optimization
@@ -124,7 +142,7 @@ export class Router {
 
   constructor(config: RouterConfig) {
     // Set defaults and normalize base path (remove trailing slash)
-    const normalizedBase = config.base?.replace(/\/$/, '') ?? '';
+    const normalizedBase = config.base?.replace(/\/$/, "") ?? "";
     this.config = {
       routes: config.routes,
       base: normalizedBase,
@@ -139,13 +157,16 @@ export class Router {
     // The (?=/|$) ensures we only match at segment boundaries:
     // - /app matches /app/page ✓
     // - /app does NOT match /application ✗
-    this.basePathRegex = this.config.base !== '' ? new RegExp(`^${this.escapeRegex(this.config.base)}(?=/|$)`) : null;
+    this.basePathRegex =
+      this.config.base !== ""
+        ? new RegExp(`^${this.escapeRegex(this.config.base)}(?=/|$)`)
+        : null;
 
     // Compile routes once for performance
     this.compileRoutes();
 
     // Fix: Only set up browser APIs if not in SSR mode
-    if (!this.config.ssr && typeof window !== 'undefined') {
+    if (!this.config.ssr && typeof window !== "undefined") {
       // Set up navigation listeners
       this.setupListeners();
 
@@ -162,7 +183,7 @@ export class Router {
    * Static routes are ~40-60% of typical applications and can skip pattern matching entirely.
    */
   private compileRoutes(): void {
-    const compile = (routes: ReadonlyArray<Route>, parentPath = ''): void => {
+    const compile = (routes: ReadonlyArray<Route>, parentPath = ""): void => {
       for (const route of routes) {
         const fullPath = this.joinPaths(parentPath, route.path);
         const paramNames = this.extractParamNames(fullPath);
@@ -205,11 +226,11 @@ export class Router {
 
     for (let i = 0; i < pattern.length; ) {
       // Check for parameter syntax
-      if (pattern[i] === ':') {
+      if (pattern[i] === ":") {
         const match = pattern.slice(i).match(/^:(\w+)/);
         if (match !== null) {
           // Replace parameter with capture group
-          parts.push('([^/]+)');
+          parts.push("([^/]+)");
           i += match[0].length;
           continue;
         }
@@ -223,7 +244,7 @@ export class Router {
       i++;
     }
 
-    const regexPattern = parts.join('');
+    const regexPattern = parts.join("");
     return new RegExp(`^${regexPattern}$`);
   }
 
@@ -232,7 +253,7 @@ export class Router {
    */
   private extractParamNames(pattern: string): string[] {
     const matches = pattern.matchAll(/:(\w+)/g);
-    return Array.from(matches, (m) => m[1] ?? '');
+    return Array.from(matches, (m) => m[1] ?? "");
   }
 
   /**
@@ -240,7 +261,7 @@ export class Router {
    * Performance: Single regex pass to escape all special chars
    */
   private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   /**
@@ -248,12 +269,12 @@ export class Router {
    * Performance: Single regex pass instead of two
    */
   private joinPaths(...paths: string[]): string {
-    const joined = paths.filter(Boolean).join('/');
-    if (joined === '') return '/';
+    const joined = paths.filter(Boolean).join("/");
+    if (joined === "") return "/";
 
     // Single regex: normalize multiple slashes and remove trailing slash
-    const normalized = joined.replace(/\/+/g, '/').replace(/\/$/, '');
-    return normalized !== '' ? normalized : '/';
+    const normalized = joined.replace(/\/+/g, "/").replace(/\/$/, "");
+    return normalized !== "" ? normalized : "/";
   }
 
   /**
@@ -262,20 +283,20 @@ export class Router {
    */
   private getCurrentPath(): string {
     // Guard: Ensure window.location exists (SSR safety)
-    if (typeof window === 'undefined' || window.location === undefined) {
-      return '/';
+    if (typeof window === "undefined" || window.location === undefined) {
+      return "/";
     }
 
     const path = window.location.pathname;
 
     // Validate path is a string
-    if (typeof path !== 'string') {
+    if (typeof path !== "string") {
       console.warn(`${ROUTER_PREFIX} Invalid pathname type:`, typeof path);
-      return '/';
+      return "/";
     }
 
     return this.basePathRegex !== null
-      ? path.replace(this.basePathRegex, '')
+      ? path.replace(this.basePathRegex, "")
       : path;
   }
 
@@ -289,7 +310,9 @@ export class Router {
    * @param path - Clean pathname to match (no query/hash)
    * @returns Matched route with params, or null if no match
    */
-  private findCompiledRoute(path: string): { route: Route; params: ExtractParams<string> } | null {
+  private findCompiledRoute(
+    path: string,
+  ): { route: Route; params: ExtractParams<string> } | null {
     // Fast path: O(1) lookup for static routes (no :params)
     // Typical apps have 40-60% static routes (/about, /contact, /pricing, etc.)
     const staticMatch = this.staticRoutes.get(path);
@@ -308,7 +331,9 @@ export class Router {
         if (match !== null) {
           return {
             route: compiled.route,
-            params: (match.pathname.groups ?? {}) as ExtractParams<typeof compiled.route.path>,
+            params: (match.pathname.groups ?? {}) as ExtractParams<
+              typeof compiled.route.path
+            >,
           };
         }
       } else if (compiled.pattern instanceof RegExp) {
@@ -317,7 +342,7 @@ export class Router {
         if (match !== null) {
           const params: Record<string, string> = {};
           compiled.paramNames.forEach((name, i) => {
-            params[name] = match[i + 1] ?? '';
+            params[name] = match[i + 1] ?? "";
           });
           return {
             route: compiled.route,
@@ -414,8 +439,10 @@ export class Router {
           const currentPath = this.getCurrentPath();
 
           // Guard: Ensure path is valid
-          if (currentPath === '' || currentPath === 'undefined') {
-            console.warn(`${ROUTER_PREFIX} Invalid path on popstate, reloading`);
+          if (currentPath === "" || currentPath === "undefined") {
+            console.warn(
+              `${ROUTER_PREFIX} Invalid path on popstate, reloading`,
+            );
             window.location.reload();
             return;
           }
@@ -427,20 +454,20 @@ export class Router {
 
           // Fallback: Try to navigate to home or reload
           try {
-            await this.navigate('/');
+            await this.navigate("/");
           } catch {
             window.location.reload();
           }
         }
       })();
     };
-    window.addEventListener('popstate', this.popstateHandler);
+    window.addEventListener("popstate", this.popstateHandler);
 
     // Handle hash changes (for hash-only navigation)
     this.hashchangeHandler = () => {
       this.handleHashChange();
     };
-    window.addEventListener('hashchange', this.hashchangeHandler);
+    window.addEventListener("hashchange", this.hashchangeHandler);
 
     // Intercept all link clicks with comprehensive guards
     // SECURITY-CRITICAL: These guards prevent navigation hijacking and XSS attacks
@@ -472,7 +499,13 @@ export class Router {
        * - Alt+Click: Download link
        * Let browser handle these - users expect standard behavior.
        */
-      if (mouseEvent.metaKey || mouseEvent.ctrlKey || mouseEvent.shiftKey || mouseEvent.altKey) return;
+      if (
+        mouseEvent.metaKey ||
+        mouseEvent.ctrlKey ||
+        mouseEvent.shiftKey ||
+        mouseEvent.altKey
+      )
+        return;
 
       /**
        * GUARD 4: Find anchor element
@@ -480,10 +513,13 @@ export class Router {
        * Use closest() to find parent anchor, respecting event bubbling.
        */
       const target = e.target as HTMLElement;
-      const anchor = target.tagName === 'A' ? (target as HTMLAnchorElement) : target.closest<HTMLAnchorElement>('a[href]');
+      const anchor =
+        target.tagName === "A"
+          ? (target as HTMLAnchorElement)
+          : target.closest<HTMLAnchorElement>("a[href]");
       if (anchor === null) return;
 
-      const href = anchor.getAttribute('href');
+      const href = anchor.getAttribute("href");
       if (href === null) return;
 
       /**
@@ -491,29 +527,29 @@ export class Router {
        * Links with download attribute should trigger browser download,
        * not SPA navigation. Respect user's intent to download files.
        */
-      if (anchor.hasAttribute('download')) return;
+      if (anchor.hasAttribute("download")) return;
 
       /**
        * GUARD 6: Target attribute
        * target="_blank", target="popup", etc. indicate user wants new window/tab.
        * Only intercept target="_self" or no target attribute.
        */
-      const targetAttr = anchor.getAttribute('target');
-      if (targetAttr !== null && targetAttr !== '_self') return;
+      const targetAttr = anchor.getAttribute("target");
+      if (targetAttr !== null && targetAttr !== "_self") return;
 
       /**
        * GUARD 7: Explicit external marker
        * data-external attribute allows developers to force external navigation.
        * Useful for links that should do full page reload (e.g., logout, payment flows).
        */
-      if (anchor.hasAttribute('data-external')) return;
+      if (anchor.hasAttribute("data-external")) return;
 
       /**
        * SPECIAL CASE: Hash-only navigation
        * Hash-only links (#section1) are in-page navigation.
        * Let browser handle scroll. The hashchange event listener will update routing state.
        */
-      if (href.startsWith('#')) {
+      if (href.startsWith("#")) {
         e.preventDefault();
         window.location.hash = href;
         // Don't call handleHashChange() manually - the hashchange event listener handles it
@@ -539,9 +575,10 @@ export class Router {
 
         // Strip base path from pathname
         const pathname = linkUrl.pathname;
-        const pathWithoutBase = this.basePathRegex !== null
-          ? pathname.replace(this.basePathRegex, '')
-          : pathname;
+        const pathWithoutBase =
+          this.basePathRegex !== null
+            ? pathname.replace(this.basePathRegex, "")
+            : pathname;
 
         // Navigate with query and hash
         void this.navigate(pathWithoutBase + linkUrl.search + linkUrl.hash);
@@ -551,7 +588,7 @@ export class Router {
         return;
       }
     };
-    document.addEventListener('click', this.clickHandler);
+    document.addEventListener("click", this.clickHandler);
   }
 
   /**
@@ -631,18 +668,20 @@ export class Router {
       if (match === null) {
         // Restore previous history state if available
         if (this.currentMatch !== null) {
-          console.warn(`${ROUTER_PREFIX} Route not found, restoring previous state`);
+          console.warn(
+            `${ROUTER_PREFIX} Route not found, restoring previous state`,
+          );
           const previousPath = this.currentMatch.path;
           window.history.replaceState(
             window.history.state,
-            '',
-            this.config.base + previousPath
+            "",
+            this.config.base + previousPath,
           );
         }
 
         // Emit not-found error to onError handler
         this.config.onError({
-          type: 'not-found',
+          type: "not-found",
           path,
         });
 
@@ -660,7 +699,7 @@ export class Router {
         if (!allowed) {
           // Emit guard-failed error to onError handler
           this.config.onError({
-            type: 'guard-failed',
+            type: "guard-failed",
             path,
             route: match.route,
           });
@@ -698,11 +737,11 @@ export class Router {
             try {
               await match.route.component();
               // Component loaded successfully, so loader failed
-              throw { type: 'loader', error };
+              throw new TaggedError("loader", error);
             } catch {
               // Component also failed, could be either
               // Default to loader error if loader was being called
-              throw { type: 'loader', error };
+              throw new TaggedError("loader", error);
             }
           }
         } else {
@@ -712,7 +751,7 @@ export class Router {
           } catch (error) {
             // Component loading failed
             this.config.onError({
-              type: 'component-error',
+              type: "component-error",
               error: error as Error,
               route: match.route,
             });
@@ -721,12 +760,11 @@ export class Router {
         }
       } catch (error) {
         // Check if this is our tagged error from loader/component
-        if (typeof error === 'object' && error !== null && 'type' in error) {
-          const taggedError = error as { type: string; error: unknown };
-          if (taggedError.type === 'loader') {
+        if (error instanceof TaggedError) {
+          if (error.errorType === "loader") {
             this.config.onError({
-              type: 'loader-error',
-              error: taggedError.error as Error,
+              type: "loader-error",
+              error: error.originalError as Error,
               route: match.route,
             });
           }
@@ -755,7 +793,7 @@ export class Router {
       }
     } catch (error) {
       // Don't report abort errors (navigation-aborted is intentional, not an error)
-      if ((error as Error).name === 'AbortError') {
+      if ((error as Error).name === "AbortError") {
         // Optionally emit navigation-aborted for logging/analytics
         // this.config.onError({ type: 'navigation-aborted', path });
         return;
@@ -764,7 +802,7 @@ export class Router {
       // Only report truly unknown errors (loader/component errors already reported above)
       // This catches unexpected errors during navigation flow
       this.config.onError({
-        type: 'unknown',
+        type: "unknown",
         error: error as Error,
       });
     }
@@ -784,12 +822,18 @@ export class Router {
    * - In-page hash links should scroll to anchor (standard HTML behavior)
    * - History navigation should feel natural (no forced scroll disrupts UX)
    */
-  public async navigate(path: string, options: NavigateOptions = {}): Promise<void> {
+  public async navigate(
+    path: string,
+    options: NavigateOptions = {},
+  ): Promise<void> {
     // Guard: Prevent navigation to external URLs
     try {
       const url = new URL(path, window.location.href);
       if (url.origin !== window.location.origin) {
-        console.warn(`${ROUTER_PREFIX} Cannot programmatically navigate to external URL:`, path);
+        console.warn(
+          `${ROUTER_PREFIX} Cannot programmatically navigate to external URL:`,
+          path,
+        );
         return;
       }
     } catch {
@@ -800,9 +844,9 @@ export class Router {
 
     // Update browser history
     if (options.replace === true) {
-      window.history.replaceState(options.state ?? {}, '', fullPath);
+      window.history.replaceState(options.state ?? {}, "", fullPath);
     } else {
-      window.history.pushState(options.state ?? {}, '', fullPath);
+      window.history.pushState(options.state ?? {}, "", fullPath);
     }
 
     // Handle navigation
@@ -811,7 +855,7 @@ export class Router {
     // Scroll to top if requested (default: true)
     // Only applies to programmatic navigation, NOT hash links or back button
     if (options.scroll !== false) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
@@ -841,7 +885,7 @@ export class Router {
       } catch (error) {
         // Report error through error handler but continue notifying other listeners
         this.config.onError({
-          type: 'unknown',
+          type: "unknown",
           error: error as Error,
         });
       }
@@ -876,15 +920,15 @@ export class Router {
    */
   public match(
     path: string,
-    options?: { search?: string; hash?: string }
+    options?: { search?: string; hash?: string },
   ): RouteMatch | null {
     // Use extracted helper to find matching route
     const found = this.findCompiledRoute(path);
     if (found === null) return null;
 
     // Build RouteMatch with provided query/hash (or defaults)
-    const query = new URLSearchParams(options?.search ?? '');
-    const hash = options?.hash ?? '';
+    const query = new URLSearchParams(options?.search ?? "");
+    const hash = options?.hash ?? "";
 
     return {
       route: found.route,
@@ -909,13 +953,13 @@ export class Router {
     // This ensures route matching works correctly even if path includes ?query or #hash
     const pathname = (() => {
       try {
-        const url = new URL(path, 'http://dummy.com');
+        const url = new URL(path, "http://dummy.com");
         return url.pathname;
       } catch {
         // If URL parsing fails, assume it's already a clean pathname
         // Extract pathname manually if it contains ? or #
-        const queryIndex = path.indexOf('?');
-        const hashIndex = path.indexOf('#');
+        const queryIndex = path.indexOf("?");
+        const hashIndex = path.indexOf("#");
 
         if (queryIndex !== -1) {
           return path.slice(0, queryIndex);
@@ -932,7 +976,7 @@ export class Router {
         await match.route.component();
       } catch (error) {
         // Silently fail - prefetch is best-effort
-        console.warn('Failed to prefetch route:', path, error);
+        console.warn("Failed to prefetch route:", path, error);
       }
     }
   }
@@ -945,13 +989,13 @@ export class Router {
     const match = this.currentMatch;
     if (match === null) return [];
 
-    const pathSegments = match.path.split('/').filter(Boolean);
+    const pathSegments = match.path.split("/").filter(Boolean);
 
     // Build breadcrumbs using reduce to accumulate path
     return pathSegments
       .map((segment, i) => {
         // Build path incrementally
-        const currentPath = `/${pathSegments.slice(0, i + 1).join('/')}`;
+        const currentPath = `/${pathSegments.slice(0, i + 1).join("/")}`;
 
         // Find best matching route for this path
         const matchingRoute = this.compiledRoutes.find((r) => {
@@ -968,11 +1012,18 @@ export class Router {
         });
 
         // Get title from matched route or use segment
+        const matchingTitle = matchingRoute?.route.meta?.["title"];
+        const matchTitle = match.route.meta?.["title"];
         const title =
-          matchingRoute?.route.meta?.['title'] !== undefined
-            ? String(matchingRoute.route.meta['title'])
-            : i === pathSegments.length - 1 && match.route.meta?.['title'] !== undefined
-              ? String(match.route.meta['title'])
+          matchingTitle !== undefined &&
+          (typeof matchingTitle === "string" ||
+            typeof matchingTitle === "number")
+            ? String(matchingTitle)
+            : i === pathSegments.length - 1 &&
+                matchTitle !== undefined &&
+                (typeof matchTitle === "string" ||
+                  typeof matchTitle === "number")
+              ? String(matchTitle)
               : segment;
 
         return { path: currentPath, title };
@@ -984,14 +1035,14 @@ export class Router {
    * Default 404 handler
    */
   private defaultNotFound(): void {
-    console.warn('Route not found:', window.location.pathname);
+    console.warn("Route not found:", window.location.pathname);
   }
 
   /**
    * Default unauthorized handler
    */
   private defaultUnauthorized(): void {
-    console.warn('Navigation blocked by route guard');
+    console.warn("Navigation blocked by route guard");
   }
 
   /**
@@ -1008,17 +1059,17 @@ export class Router {
 
     // Fix: Remove event listeners if they exist
     if (this.clickHandler !== null) {
-      document.removeEventListener('click', this.clickHandler);
+      document.removeEventListener("click", this.clickHandler);
       this.clickHandler = null;
     }
 
     if (this.popstateHandler !== null) {
-      window.removeEventListener('popstate', this.popstateHandler);
+      window.removeEventListener("popstate", this.popstateHandler);
       this.popstateHandler = null;
     }
 
     if (this.hashchangeHandler !== null) {
-      window.removeEventListener('hashchange', this.hashchangeHandler);
+      window.removeEventListener("hashchange", this.hashchangeHandler);
       this.hashchangeHandler = null;
     }
   }
@@ -1038,7 +1089,7 @@ export function createRouter(config: RouterConfig): Router {
  */
 export function route<Path extends string>(
   path: Path,
-  config: Omit<Route<Path>, 'path'>
+  config: Omit<Route<Path>, "path">,
 ): Route<Path> {
   return { path, ...config };
 }

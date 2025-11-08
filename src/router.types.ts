@@ -28,14 +28,14 @@ export type ExtractParams<Path extends string> =
   Path extends `${infer _Prefix}/:${infer Param}/${infer Suffix}`
     ? { [K in Param]: string } & ExtractParams<Suffix>
     : Path extends `${infer _Prefix}/:${infer Param}`
-    ? { [K in Param]: string }
-    : Record<string, never>;
+      ? { [K in Param]: string }
+      : Record<string, never>;
 
 /**
  * Branded type for validated paths
  * Provides compile-time safety for path strings
  */
-export type ValidPath = string & { readonly __brand: 'ValidPath' };
+export type ValidPath = string & { readonly __brand: "ValidPath" };
 
 /**
  * Loader context passed to route loaders
@@ -64,7 +64,7 @@ export interface LoaderContext<Path extends string = string> {
 export interface Route<
   Path extends string = string,
   TComponent = unknown,
-  TData = unknown
+  TData = unknown,
 > {
   /** URL path pattern with :param syntax */
   readonly path: Path;
@@ -171,10 +171,10 @@ export interface CompiledRoute<Path extends string = string> {
  * }
  */
 export type RouterState =
-  | { readonly status: 'idle' }
-  | { readonly status: 'navigating'; readonly path: string }
-  | { readonly status: 'matched'; readonly match: RouteMatch }
-  | { readonly status: 'error'; readonly error: NavigationError };
+  | { readonly status: "idle" }
+  | { readonly status: "navigating"; readonly path: string }
+  | { readonly status: "matched"; readonly match: RouteMatch }
+  | { readonly status: "error"; readonly error: NavigationError };
 
 /**
  * Navigation errors - discriminated union for type-safe error handling
@@ -207,10 +207,26 @@ export type RouterState =
  * }
  */
 export type NavigationError =
-  | { readonly type: 'not-found'; readonly path: string }
-  | { readonly type: 'unauthorized'; readonly path: string; readonly route: Route }
-  | { readonly type: 'guard-failed'; readonly path: string; readonly route: Route }
-  | { readonly type: 'loader-error'; readonly error: Error; readonly route: Route }
-  | { readonly type: 'component-error'; readonly error: Error; readonly route: Route }
-  | { readonly type: 'navigation-aborted'; readonly path: string }
-  | { readonly type: 'unknown'; readonly error: Error };
+  | { readonly type: "not-found"; readonly path: string }
+  | {
+      readonly type: "unauthorized";
+      readonly path: string;
+      readonly route: Route;
+    }
+  | {
+      readonly type: "guard-failed";
+      readonly path: string;
+      readonly route: Route;
+    }
+  | {
+      readonly type: "loader-error";
+      readonly error: Error;
+      readonly route: Route;
+    }
+  | {
+      readonly type: "component-error";
+      readonly error: Error;
+      readonly route: Route;
+    }
+  | { readonly type: "navigation-aborted"; readonly path: string }
+  | { readonly type: "unknown"; readonly error: Error };
