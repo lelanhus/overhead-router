@@ -1,6 +1,6 @@
 # Performance Characteristics
 
-**Overhead Router** is designed with performance as a first-class concern. The declarative API enables automatic optimizations that would be difficult with imperative routing.
+**@overhead/router** is designed with performance as a first-class concern. The declarative API enables automatic optimizations that would be difficult with imperative routing.
 
 ## Bundle Size
 
@@ -15,10 +15,10 @@
 
 | Router | Size (gzipped) | Notes |
 |--------|----------------|-------|
-| Overhead Router | ~4KB | Full-featured, type-safe |
+| @overhead/router | ~4KB | Full-featured, type-safe |
 | Navigo | 4.1KB | Similar features, no TS |
 | Wouter | 2.1KB | React-only, fewer features |
-| React Router | 26.4KB | Framework router, more features |
+| React Router | 32KB | Framework router, more features |
 | page.js | 4.0KB | Minimal, no TS support |
 
 ## Runtime Performance
@@ -193,12 +193,12 @@ private matchRoute(path: string): RouteMatch | null {
 - Parse/execute: ~15ms
 - Total: **~26KB, ~15ms**
 
-**With Overhead Router:**
-- Load Overhead Router: ~4KB
+**With @overhead/router:**
+- Load @overhead/router: ~4KB
 - Parse/execute: ~2ms
 - Total: **~4KB, ~2ms**
 
-**Savings:** 21KB (520% reduction), 13ms faster
+**Savings:** 28KB (800% reduction), 13ms faster
 
 ### Scenario 2: Navigation to New Route
 
@@ -208,7 +208,7 @@ Click → Route match → Component load → Render → Data fetch → Re-render
 0ms      1ms           50ms             51ms      200ms        251ms
 ```
 
-**Overhead Router approach (parallel):**
+**@overhead/router approach (parallel):**
 ```
 Click → Route match → Component load + Data fetch → Render
 0ms      1ms           max(50ms, 200ms)            200ms
@@ -383,9 +383,9 @@ Overhead Router is stable:
 
 ## Summary
 
-Overhead Router achieves high performance through:
+@overhead/router achieves high performance through:
 
-1. **Small bundle size** (~4KB vs. 26KB for React Router)
+1. **Small bundle size** (~4KB vs. 32KB for React Router)
 2. **Declarative optimizations** (parallel loading, lazy loading)
 3. **Native browser APIs** (URLPattern, History, dynamic import)
 4. **Memoization** (avoid re-matching same route)

@@ -1,12 +1,12 @@
-# Overhead Router
+# @overhead/router
 
 **Declarative, type-safe routing for modern web applications.**
 
 Built for semantic HTML, vanilla TypeScript, and the Overhead framework. Performance-first design with ~4KB gzipped bundle.
 
-## Why Overhead Router?
+## Why @overhead/router?
 
-Modern web frameworks are bloated. You don't need 26KB of routing code. You just need:
+Modern web frameworks are bloated. You don't need 32KB of routing code. You just need:
 
 - ✅ **Declarative routes** - Configuration over code
 - ✅ **Type safety** - Compile-time path validation
@@ -268,7 +268,7 @@ const router = createRouter({
 });
 ```
 
-*Browser support:* Chrome 111+, Edge 111+, Safari 18+ for View Transitions. Chrome 102+ for Navigation API. Automatic fallback to History API if unavailable.
+*Browser support:* Chrome 111+, Edge 111+, Safari 18+ for View Transitions. Chrome 102+, Edge 102+ for Navigation API (NOT supported in Safari or Firefox as of 2025). Automatic fallback to History API if unavailable.
 
 ### Navigation Hooks
 
@@ -412,6 +412,32 @@ if (match) {
   console.log(match.query);
   console.log(match.data); // Loaded data if loader exists
 }
+```
+
+### `router.match(path, options?)`
+
+Match a path without navigating or affecting browser state. Useful for SSR, testing, and programmatic route matching.
+
+```typescript
+// SSR route matching
+const match = router.match('/products/123', {
+  search: '?category=electronics',
+  hash: '#reviews'
+});
+
+if (match) {
+  console.log('Route:', match.route.path);
+  console.log('Params:', match.params);
+}
+```
+
+### `router.clearCache()`
+
+Clear the route matching cache.
+
+```typescript
+// Clear cache after configuration change
+router.clearCache();
 ```
 
 ### `router.destroy()`
@@ -577,12 +603,13 @@ route('/dashboard', {
 - **Zero dependencies**
 - **Native browser APIs** (URLPattern, History API, View Transitions, Navigation API)
 
-See [PERFORMANCE.md](./PERFORMANCE.md) for detailed benchmarks.
+See [PERFORMANCE.md](./docs/PERFORMANCE.md) for detailed benchmarks.
 
 ## Browser Support
 
-- **Modern browsers:** Full support (Chrome 95+, Edge 95+, Safari 16.4+, Firefox 120+)
-- **Fallback:** Regex-based routing for older browsers
+- **Core routing:** Chrome 95+, Edge 95+, Safari 16.4+, Firefox 120+ (URLPattern with RegExp fallback)
+- **View Transitions:** Chrome 111+, Edge 111+, Safari 18+ (automatic fallback on unsupported browsers)
+- **Navigation API:** Chrome 102+, Edge 102+ only (NOT Safari/Firefox, automatic fallback to History API)
 - **Progressive enhancement:** Works without JavaScript (with server-side routing)
 
 ## Philosophy
@@ -596,9 +623,9 @@ See [PERFORMANCE.md](./PERFORMANCE.md) for detailed benchmarks.
 
 ## Comparison
 
-| Feature | Overhead Router | React Router | Navigo |
+| Feature | @overhead/router | React Router | Navigo |
 |---------|-----------------|--------------|--------|
-| Bundle size | ~4KB | 26KB | 4KB |
+| Bundle size | ~4KB | 32KB | 4KB |
 | TypeScript | ✓ Full | ✓ Full | Partial |
 | Type-safe params | ✓ | ✓ (v7) | ✗ |
 | Declarative | ✓ | ✓ | Partial |

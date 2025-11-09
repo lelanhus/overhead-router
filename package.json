@@ -22,10 +22,7 @@
     "dist",
     "src",
     "README.md",
-    "API.md",
-    "DATA_MODEL.md",
-    "DESIGN.md",
-    "PERFORMANCE.md",
+    "docs",
     "LICENSE"
   ],
   "scripts": {

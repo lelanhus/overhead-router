@@ -1,4 +1,4 @@
-# Overhead Router
+# @overhead/router
 
 Declarative, type-safe routing library for the Overhead framework. Framework-agnostic, ~4KB gzipped.
 
@@ -162,7 +162,7 @@ loader: ({ params, query, hash, signal }) => fetch(url, { signal })
 - Exports order: types MUST come before import/require
 - TypeScript declarations included
 - Tree-shakeable exports
-- Files published: dist/, src/, docs (README, API, DATA_MODEL, DESIGN, PERFORMANCE, LICENSE)
+- Files published: dist/, src/, README, docs/ (API, DATA_MODEL, DESIGN, PERFORMANCE, FEATURES), LICENSE
 
 ## DO NOT MODIFY Without Careful Review
 - src/router.types.ts - Type inference system (ExtractParams, LoaderContext)
@@ -171,9 +171,72 @@ loader: ({ params, query, hash, signal }) => fetch(url, { signal })
 - Cache behavior - Query/hash always fresh, route/params cached
 
 ## Cache Behavior (CRITICAL)
-**Cached:** route, params, path
-**NEVER cached:** query, hash, data
-**Reason:** Query/hash change frequently without route changes
+
+The router implements a configurable LRU cache system for route matching optimization.
+
+### Configurable Cache Strategies
+
+**Global cache configuration:**
+```typescript
+createRouter({
+  routes,
+  cache: {
+    strategy: 'params',  // 'params' | 'query' | 'full' | false
+    maxSize: 10,         // LRU cache size (default: 10)
+    maxAge: Infinity     // TTL in milliseconds (default: Infinity)
+  }
+});
+```
+
+**Per-route cache overrides:**
+```typescript
+route({
+  path: '/search',
+  cache: { strategy: 'query', maxAge: 60000 }, // Cache for 1 minute
+  loader: async ({ query }) => search(query.get('q'))
+});
+
+route({
+  path: '/live-data',
+  cache: false, // Disable caching entirely
+  loader: async () => fetchLiveData()
+});
+```
+
+### Cache Strategies
+
+1. **`'params'` (default)**: Cache by path + params only
+   - Query/hash changes do NOT invalidate cache
+   - Data is re-loaded on each navigation
+   - Best for most routes where query/hash are secondary
+
+2. **`'query'`**: Cache by path + params + query
+   - Hash changes do NOT invalidate cache
+   - Data is re-loaded when query changes
+   - Best for search/filter routes
+
+3. **`'full'`**: Cache by path + params + query + hash
+   - Any URL component change invalidates cache
+   - Most conservative caching
+   - Best for routes where hash affects data
+
+4. **`false`**: No caching
+   - Always re-match and re-load
+   - Best for live/realtime data routes
+
+### What Gets Cached
+
+**Cached in route match cache:**
+- Compiled route reference
+- Extracted path parameters
+- Matched path string
+
+**NEVER cached (always fresh):**
+- Query parameters (read from `window.location.search`)
+- Hash (read from `window.location.hash`)
+- Loader data (re-executed based on cache strategy)
+
+**Reason**: Query and hash can change without path changes (e.g., `/products?sort=price` → `/products?sort=name`). The cache strategy determines when to re-run loaders, but query/hash are always read fresh from the URL.
 
 ## Quality Gates Before Release
 - ✓ All 124 tests passing
@@ -181,7 +244,7 @@ loader: ({ params, query, hash, signal }) => fetch(url, { signal })
 - ✓ No ESLint errors (bun run lint)
 - ✓ Bundle size within limits (~4KB gzipped, < 5KB budget)
 - ✓ No circular dependencies
-- ✓ Documentation updated (README, API.md, DATA_MODEL.md, CLAUDE.md)
+- ✓ Documentation updated (README, docs/API.md, docs/DATA_MODEL.md, CLAUDE.md)
 
 ## Documentation Standards
 - JSDoc all public methods

@@ -1,8 +1,8 @@
-# sane-router: Platform-First Features
+# @overhead/router: Platform-First Features
 
 ## Overview
 
-sane-router is a declarative, type-safe routing library designed for modern web applications. It leverages cutting-edge browser APIs while providing graceful fallbacks for broader compatibility.
+@overhead/router is a declarative, type-safe routing library designed for modern web applications. It leverages cutting-edge browser APIs while providing graceful fallbacks for broader compatibility.
 
 **Bundle Size**: ~4KB gzipped (< 5KB budget, entire router + utilities)
 **Browser Support**: Chrome 95+, Safari 16.4+ (URLPattern), Firefox 120+, Safari 18+ (View Transitions)
@@ -114,9 +114,9 @@ Control caching behavior per-route or globally:
 const router = createRouter({
   routes,
   cache: {
-    strategy: 'params', // Default: re-load on query/hash change
-    maxSize: 10,
-    maxAge: Infinity
+    strategy: 'params', // Default: cache by path + params only
+    maxSize: 10,        // LRU cache size (default: 10)
+    maxAge: Infinity    // Default TTL in milliseconds
   }
 });
 
@@ -134,10 +134,10 @@ route({
 });
 
 // Cache strategies:
-// - 'params': Cache by path only (default)
-// - 'query': Cache by path + query
-// - 'full': Cache by path + query + hash
-// - false: No caching
+// - 'params': Cache by path + params only (default, ignores query/hash changes)
+// - 'query': Cache by path + params + query (hash changes ignored)
+// - 'full': Cache by path + params + query + hash
+// - false: No caching, always re-match and re-load
 ```
 
 ### 6. View Transitions API

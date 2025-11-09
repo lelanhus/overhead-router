@@ -1,6 +1,6 @@
 # Design Philosophy
 
-**Overhead Router** is built on the principle that **declarative APIs enable automatic performance optimizations**.
+**@overhead/router** is built on the principle that **declarative APIs enable automatic performance optimizations**.
 
 ## Core Principles
 
@@ -348,8 +348,8 @@ async function createRouterWithDynamicRoutes() {
 - React-only
 - Complex API surface
 
-**Overhead Router difference:**
-- **6.5x smaller** (4KB vs 26KB)
+**@overhead/router difference:**
+- **8x smaller** (4KB vs 32KB)
 - Framework-agnostic
 - Simpler API (declarative configuration)
 
@@ -365,12 +365,12 @@ async function createRouterWithDynamicRoutes() {
 - No data loading pattern
 - Imperative route handlers
 
-**Overhead Router difference:**
+**@overhead/router difference:**
 - Type-safe parameters
 - Declarative loaders/guards
 - Better composition (nested routes)
 
-### TanStack Router (8KB)
+### TanStack Router (15KB)
 
 **Pros:**
 - Type-safe
@@ -382,8 +382,8 @@ async function createRouterWithDynamicRoutes() {
 - More complex setup
 - Framework-specific adapters
 
-**Overhead Router difference:**
-- **2x smaller** (4KB vs 8KB)
+**@overhead/router difference:**
+- **3.75x smaller** (4KB vs 15KB)
 - No build step required
 - Simpler mental model
 
@@ -533,4 +533,4 @@ By constraining the API to declarative patterns, we:
 
 The result is a router that's both **easier to use** and **faster to run**.
 
-That's **Overhead Router** - minimal overhead, maximum performance.
+That's **@overhead/router** - minimal overhead, maximum performance.
