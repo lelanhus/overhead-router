@@ -4,10 +4,10 @@
 
 ## Bundle Size
 
-**Target: 3-4KB gzipped**
+**Actual: ~4KB gzipped (< 5KB budget)**
 
-- Core router: ~2.5KB gzipped
-- Utilities: ~1.5KB gzipped
+- Core router: ~3.7KB gzipped
+- Utilities: ~0.3KB gzipped
 - Zero runtime dependencies
 - Tree-shakeable: Only import what you use
 
@@ -198,7 +198,7 @@ private matchRoute(path: string): RouteMatch | null {
 - Parse/execute: ~2ms
 - Total: **~4KB, ~2ms**
 
-**Savings:** 22KB (550% reduction), 13ms faster
+**Savings:** 21KB (520% reduction), 13ms faster
 
 ### Scenario 2: Navigation to New Route
 
@@ -358,8 +358,8 @@ If metrics exceed these, investigate:
 ### 1. Minification
 
 Overhead Router minifies well:
-- Unminified: ~12KB
-- Minified: ~5KB
+- Unminified: ~15KB
+- Minified: ~6KB
 - Gzipped: **~4KB**
 
 ### 2. Tree Shaking

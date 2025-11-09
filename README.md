@@ -133,17 +133,142 @@ route('/products/:id', {
 
 ### Route Guards
 
-Declarative authorization:
+Enhanced guards with redirect, deny, and context passing:
 
 ```typescript
-route('/admin', {
-  guard: async () => {
-    const user = await getCurrentUser();
-    return user?.role === 'admin';
+route('/dashboard', {
+  guard: async (params) => {
+    const user = await getUser();
+
+    // Redirect to login if not authenticated
+    if (!user) {
+      return { redirect: '/login', replace: true };
+    }
+
+    // Deny with reason if lacking permissions
+    if (!user.isPremium) {
+      return { deny: true, reason: 'Premium required' };
+    }
+
+    // Pass context to loader
+    return { allow: true, context: { user } };
   },
-  component: () => import('./admin'),
+  loader: async ({ context }) => {
+    // Type assertion is safe - guard and loader defined together
+    const { user } = context as { user: User };
+    return fetchDashboard(user);
+  },
+  component: () => import('./dashboard'),
 });
 ```
+
+**Guard return types:**
+- `boolean` - `true` allows, `false` denies (backward compatible)
+- `{ allow: true, context?: any }` - Allow with optional context for loader
+- `{ redirect: string, replace?: boolean }` - Redirect to another path
+- `{ deny: true, reason?: string }` - Deny with optional reason
+
+**Type Safety Note:** Guard context is passed to loaders as `unknown`. Use type assertions when accessing:
+
+```typescript
+loader: async ({ context }) => {
+  // Safe because guard and loader are defined together
+  const guardData = context as { user: User };
+  return fetchDashboard(guardData.user);
+}
+```
+
+This design keeps the type system simple while maintaining runtime safety.
+
+### Programmatic Redirects
+
+Throw redirects from loaders for cleaner error handling:
+
+```typescript
+import { redirect } from '@overhead/router';
+
+route('/products/:id', {
+  loader: async ({ params }) => {
+    const product = await fetchProduct(params.id);
+
+    if (!product) {
+      redirect('/404'); // Throws RedirectResponse
+    }
+
+    if (product.archived) {
+      redirect(`/products/${product.newId}`, true);
+    }
+
+    return product;
+  },
+  component: () => import('./product'),
+});
+```
+
+### Cache Strategies
+
+Control caching behavior per-route or globally:
+
+```typescript
+const router = createRouter({
+  routes,
+  cache: {
+    strategy: 'params', // Default: cache by path + params only
+    maxSize: 10,        // LRU cache size
+    maxAge: Infinity,   // Default TTL in milliseconds
+  },
+});
+
+// Per-route cache overrides
+route('/search', {
+  cache: { strategy: 'query', maxAge: 60000 }, // Cache includes query for 1min
+  loader: async ({ query }) => search(query.get('q')),
+  component: () => import('./search'),
+});
+
+route('/live-data', {
+  cache: false, // Never cache
+  loader: async () => fetchLiveData(),
+  component: () => import('./live'),
+});
+```
+
+**Cache strategies:**
+- `'params'` - Cache by path + params only (default)
+- `'query'` - Cache by path + params + query
+- `'full'` - Cache by everything (path + params + query + hash)
+- `false` - No caching, always re-load
+
+### Modern Browser APIs
+
+**View Transitions** - Smooth cross-fade animations (enabled by default):
+
+```typescript
+const router = createRouter({
+  routes,
+  viewTransitions: true, // Default: true
+});
+```
+
+Customize transitions with CSS:
+
+```css
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+}
+```
+
+**Navigation API** - Experimental API for better navigation control (opt-in):
+
+```typescript
+const router = createRouter({
+  routes,
+  useNavigationAPI: true, // Default: false
+});
+```
+
+*Browser support:* Chrome 111+, Edge 111+, Safari 18+ for View Transitions. Chrome 102+ for Navigation API. Automatic fallback to History API if unavailable.
 
 ### Navigation Hooks
 
@@ -182,6 +307,13 @@ const router = createRouter({
     afterNavigate?: (path: string) => void | Promise<void>,
   },
   ssr?: boolean,             // SSR mode - skips browser API setup (default: false)
+  viewTransitions?: boolean, // Enable View Transitions API (default: true)
+  useNavigationAPI?: boolean, // Enable Navigation API (default: false, experimental)
+  cache?: {
+    strategy?: 'params' | 'query' | 'full' | false, // Cache strategy (default: 'params')
+    maxSize?: number,        // LRU cache size (default: 10)
+    maxAge?: number,         // Default TTL in milliseconds (default: Infinity)
+  },
 });
 ```
 
@@ -193,10 +325,19 @@ Define a type-safe route.
 route('/users/:id', {
   component: () => Promise<any> | any,
   loader?: (context: LoaderContext) => Promise<any> | any,
-  guard?: (params) => boolean | Promise<boolean>,
+  guard?: (params) => GuardResult | Promise<GuardResult>,
   children?: Route[],
   meta?: Record<string, any>,
+  cache?: CacheStrategy | CacheConfig | false,
 });
+```
+
+**GuardResult:**
+```typescript
+| boolean                                              // true = allow, false = deny
+| { allow: true, context?: any }                       // Allow with optional context
+| { redirect: string, replace?: boolean }              // Redirect
+| { deny: true, reason?: string }                      // Deny with reason
 ```
 
 **LoaderContext:**
@@ -206,6 +347,7 @@ route('/users/:id', {
   query: URLSearchParams,        // Query parameters
   hash: string,                  // URL hash
   signal: AbortSignal,           // For cancellation
+  context?: any,                 // Optional context from guard
 }
 ```
 
@@ -429,11 +571,11 @@ route('/dashboard', {
 
 ## Performance
 
-- **Bundle size:** ~4KB gzipped
+- **Bundle size:** ~4KB gzipped (< 5KB budget)
 - **Route matching:** <1ms (LRU cached, O(1) for last 10 routes)
-- **Navigation:** <100ms (excluding network)
+- **Navigation:** <5ms (loader dependent)
 - **Zero dependencies**
-- **Native browser APIs** (URLPattern, History API)
+- **Native browser APIs** (URLPattern, History API, View Transitions, Navigation API)
 
 See [PERFORMANCE.md](./PERFORMANCE.md) for detailed benchmarks.
 
@@ -456,13 +598,15 @@ See [PERFORMANCE.md](./PERFORMANCE.md) for detailed benchmarks.
 
 | Feature | Overhead Router | React Router | Navigo |
 |---------|-----------------|--------------|--------|
-| Bundle size | 4KB | 26KB | 4KB |
+| Bundle size | ~4KB | 26KB | 4KB |
 | TypeScript | ✓ Full | ✓ Full | Partial |
 | Type-safe params | ✓ | ✓ (v7) | ✗ |
 | Declarative | ✓ | ✓ | Partial |
 | Framework-agnostic | ✓ | React only | ✓ |
 | Data loading | ✓ | ✓ | ✗ |
-| Route guards | ✓ | ✓ | ✓ |
+| Route guards | ✓ Enhanced | ✓ | ✓ |
+| Cache strategies | ✓ | ✗ | ✗ |
+| View Transitions | ✓ | ✗ | ✗ |
 | Nested routes | ✓ | ✓ | ✗ |
 | Dependencies | 0 | 2 | 0 |
 

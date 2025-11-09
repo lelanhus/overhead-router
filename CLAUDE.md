@@ -23,7 +23,7 @@ GitHub Actions runs on every push to `main` and all pull requests:
 - **Type checking** - `bun run typecheck` (catches type errors)
 - **Linting** - `bun run lint` (enforces code quality rules)
 - **Formatting** - `bun run format:check` (ensures consistent style)
-- **Tests** - `bun test` (runs all 80 tests)
+- **Tests** - `bun test` (runs all 124 tests)
 - **Build** - `bun run build` (verifies production build)
 - **Bundle size check** - Warns if gzipped bundle exceeds 7KB
 
@@ -176,10 +176,10 @@ loader: ({ params, query, hash, signal }) => fetch(url, { signal })
 **Reason:** Query/hash change frequently without route changes
 
 ## Quality Gates Before Release
-- ✓ All 80 tests passing
+- ✓ All 124 tests passing
 - ✓ No TypeScript errors (bun run typecheck)
 - ✓ No ESLint errors (bun run lint)
-- ✓ Bundle size within limits
+- ✓ Bundle size within limits (~4KB gzipped, < 5KB budget)
 - ✓ No circular dependencies
 - ✓ Documentation updated (README, API.md, DATA_MODEL.md, CLAUDE.md)
 

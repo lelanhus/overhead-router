@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createRouter, route } from "./router.js";
+import { route } from "./route-factory.js";
+import { createRouter } from "./router.js";
 
 // Mock browser globals with proper types
 global.window = {
@@ -226,7 +227,7 @@ describe("Critical Fixes", () => {
 
       // Router should still work (routes compiled - static route goes in staticRoutes Map)
       expect(
-        router["staticRoutes"].size + router["compiledRoutes"].length,
+        router["staticRoutes"].size + router["compiledRoutes"]["value"].length,
       ).toBe(1);
     });
 
@@ -271,30 +272,30 @@ describe("Critical Fixes", () => {
 
 describe("Integration: All Fixes Working Together", () => {
   it("handles complex navigation scenario safely", async () => {
-    const events: string[] = [];
+    let events: readonly string[] = [];
 
     const router = createRouter({
       routes: [
         route("/page1", {
           component: async () => {
             await new Promise((resolve) => setTimeout(resolve, 50));
-            events.push("page1-component");
+            events = [...events, "page1-component"];
             return "page1";
           },
           loader: async () => {
             await new Promise((resolve) => setTimeout(resolve, 50));
-            events.push("page1-loader");
+            events = [...events, "page1-loader"];
           },
         }),
         route("/page2", {
           component: async () => {
             await new Promise((resolve) => setTimeout(resolve, 50));
-            events.push("page2-component");
+            events = [...events, "page2-component"];
             return "page2";
           },
           loader: async () => {
             await new Promise((resolve) => setTimeout(resolve, 50));
-            events.push("page2-loader");
+            events = [...events, "page2-loader"];
           },
         }),
       ],
