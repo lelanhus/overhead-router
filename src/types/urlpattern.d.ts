@@ -4,32 +4,32 @@
  */
 
 interface URLPatternInit {
-  protocol?: string;
-  username?: string;
-  password?: string;
-  hostname?: string;
-  port?: string;
-  pathname?: string;
-  search?: string;
-  hash?: string;
-  baseURL?: string;
+  readonly protocol?: string;
+  readonly username?: string;
+  readonly password?: string;
+  readonly hostname?: string;
+  readonly port?: string;
+  readonly pathname?: string;
+  readonly search?: string;
+  readonly hash?: string;
+  readonly baseURL?: string;
 }
 
 interface URLPatternResult {
-  inputs: [URLPatternInit] | [string, string?];
-  protocol: URLPatternComponentResult;
-  username: URLPatternComponentResult;
-  password: URLPatternComponentResult;
-  hostname: URLPatternComponentResult;
-  port: URLPatternComponentResult;
-  pathname: URLPatternComponentResult;
-  search: URLPatternComponentResult;
-  hash: URLPatternComponentResult;
+  readonly inputs: readonly [URLPatternInit] | readonly [string, string?];
+  readonly protocol: URLPatternComponentResult;
+  readonly username: URLPatternComponentResult;
+  readonly password: URLPatternComponentResult;
+  readonly hostname: URLPatternComponentResult;
+  readonly port: URLPatternComponentResult;
+  readonly pathname: URLPatternComponentResult;
+  readonly search: URLPatternComponentResult;
+  readonly hash: URLPatternComponentResult;
 }
 
 interface URLPatternComponentResult {
-  input: string;
-  groups: Record<string, string | undefined>;
+  readonly input: string;
+  readonly groups: Record<string, string | undefined>;
 }
 
 declare class URLPattern {

@@ -1,6 +1,8 @@
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
+import sonarjs from 'eslint-plugin-sonarjs';
+import functional from 'eslint-plugin-functional';
 import prettierConfig from 'eslint-config-prettier';
 
 export default [
@@ -20,6 +22,8 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint,
       'import': importPlugin,
+      'sonarjs': sonarjs,
+      'functional': functional,
     },
     rules: {
       // ESLint recommended rules
@@ -60,6 +64,29 @@ export default [
           allowNullableObject: false,
         },
       ],
+
+      // Code Complexity Rules
+      'complexity': ['error', 15], // Cyclomatic complexity
+      'max-depth': ['error', 4], // Nesting depth
+      'max-lines': ['error', 300], // File length
+      'max-lines-per-function': ['error', 50], // Function length
+      'max-params': ['error', 4], // Parameter count
+      'max-statements': ['error', 30], // Statements per function
+
+      // SonarJS - Cognitive Complexity & Code Quality
+      'sonarjs/cognitive-complexity': ['error', 15], // Cognitive complexity (strict)
+      'sonarjs/no-duplicate-string': ['warn', { threshold: 5 }], // Warn on 5+ duplicate strings
+      'sonarjs/no-identical-functions': 'warn', // Detect copy-paste code
+      'sonarjs/prefer-immediate-return': 'warn', // Avoid unnecessary variables
+      'sonarjs/no-collapsible-if': 'warn', // Simplify nested ifs
+      'sonarjs/no-nested-template-literals': 'off', // Allow for buildPath usage
+
+      // Functional Programming (aligns with CLAUDE.md immutability principles)
+      'functional/no-let': 'warn', // Prefer const (3 justified lets exist)
+      'functional/immutable-data': 'off', // Too strict, conflicts with array methods
+      'functional/prefer-readonly-type': 'warn', // Encourage readonly arrays/objects
+      'functional/no-loop-statements': 'off', // Justified loops exist
+      'functional/no-throw-statements': 'off', // Used for control flow (redirect)
 
       // Import Rules
       'import/no-cycle': 'error',
@@ -106,6 +133,12 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/strict-boolean-expressions': 'off',
       '@typescript-eslint/unbound-method': 'off',
+      // Relax complexity rules for tests
+      'max-lines': 'off',
+      'max-lines-per-function': 'off',
+      'complexity': 'off',
+      'sonarjs/cognitive-complexity': 'off',
+      'functional/no-let': 'off',
     },
   },
   prettierConfig,

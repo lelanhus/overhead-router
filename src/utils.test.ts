@@ -396,7 +396,7 @@ describe("Stateful Classes - Critical Paths", () => {
       }
 
       // Should only keep last 100
-      expect(monitor["metrics"].length).toBe(100);
+      expect(monitor["metrics"]["value"].length).toBe(100);
     });
 
     it("returns zero averages when no metrics recorded", () => {

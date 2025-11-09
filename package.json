@@ -3,19 +3,19 @@
   "version": "1.0.0",
   "description": "Declarative, type-safe routing for the Overhead framework. Small, fast, and framework-agnostic.",
   "type": "module",
-  "main": "dist/router.js",
-  "module": "dist/router.mjs",
-  "types": "dist/router.d.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/router.d.ts",
-      "import": "./dist/router.mjs",
-      "require": "./dist/router.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./utils": {
       "types": "./dist/utils.d.ts",
-      "import": "./dist/utils.mjs",
-      "require": "./dist/utils.js"
+      "import": "./dist/utils.js",
+      "require": "./dist/utils.cjs"
     }
   },
   "files": [
@@ -29,8 +29,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/router.ts src/utils.ts --format cjs,esm --dts",
-    "dev": "tsup src/router.ts src/utils.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/utils.ts --format cjs,esm --dts --minify --treeshake",
+    "dev": "tsup src/index.ts src/utils.ts --format cjs,esm --dts --watch",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
@@ -75,9 +75,7 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-functional": "^9.0.2",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-sonarjs": "^3.0.5",
-    "eslint-plugin-unicorn": "^62.0.0",
     "prettier": "^3.6.2",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",

@@ -3,7 +3,7 @@
  * Run with: bun run benchmark/route-matching.bench.ts
  */
 
-import { createRouter, route } from '../src/router';
+import { createRouter, route } from '../src/router.js';
 
 // Mock browser globals for Node.js environment
 (global as any).window = {

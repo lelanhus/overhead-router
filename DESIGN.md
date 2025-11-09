@@ -432,6 +432,94 @@ createRouter({
 ❌ **SSR framework** - Keep it client-side
 ❌ **React-specific hooks** - Adapters live separately
 
+## Design Decision: Guard Context Typing
+
+### The Trade-Off
+
+Guards can return typed context via `GuardResult<TContext>`, but loaders receive `context` as `unknown`.
+This is an intentional design decision, not an oversight.
+
+### The Problem with Full Type Propagation
+
+Full end-to-end type safety would require:
+
+1. **Adding a 4th generic to Route:**
+   ```typescript
+   Route<Path, TComponent, TData, TContext>  // Instead of current 3
+   ```
+
+2. **Updating all type utilities:**
+   ```typescript
+   InferRouteData<R extends Route<string, unknown, infer TData, unknown>>
+   InferRouteParams<R extends Route<infer Path, unknown, unknown, unknown>>
+   // Harder to read, maintain, and understand
+   ```
+
+3. **More complex error messages:**
+   - Users would see 4 generics in every error
+   - Debugging becomes significantly harder
+   - Learning curve increases
+
+4. **TypeScript limitation - No automatic inference:**
+   Even with full generic propagation, TypeScript **can't infer TContext from inline guards**:
+
+   ```typescript
+   // This WON'T automatically infer TContext
+   route({
+     guard: async () => ({ allow: true, context: { user } }),
+     loader: async ({ context }) => { /* context is STILL unknown! */ }
+   })
+
+   // You'd need to manually specify ALL 4 generics:
+   route<'/path', Component, Data, { user: User }>({
+     guard: async () => ({ allow: true, context: { user } }),
+     loader: async ({ context }) => { /* NOW it's typed */ }
+   })
+   ```
+
+   So users trade **"one `as` assertion"** for **"specify 4 generics manually"**.
+
+### Current Pattern (Pragmatic Choice)
+
+```typescript
+route({
+  path: '/dashboard',
+  guard: async () => {
+    const user = await getUser();
+    return { allow: true, context: { user } };
+  },
+  loader: async ({ context }) => {
+    // Type assertion is safe - guard and loader defined together
+    const { user } = context as { user: User };
+    return fetchDashboard(user);
+  }
+})
+```
+
+**Pros:**
+- ✅ Simple: Route has 3 generics, easy to understand
+- ✅ Clear error messages
+- ✅ One-line assertion when needed
+- ✅ Works: Runtime behavior is perfect
+- ✅ Safe: Guard/loader are co-located, assertion is valid
+
+**Cons:**
+- ❌ Requires manual type assertion for guard context
+
+### Why This Is The Right Trade-Off
+
+1. **Simplicity wins:** A router with 3 generics is dramatically easier to use and understand than one with 4
+2. **Practicality over purity:** One `as` assertion is acceptable for co-located code
+3. **TypeScript limitations:** Full typing wouldn't work automatically anyway
+4. **Performance:** No runtime impact either way (purely types)
+5. **Maintenance:** Simpler types = easier for contributors
+
+### Future Enhancement
+
+If users **specifically request** full end-to-end type propagation, it can be added in a future version as an opt-in feature. The current design doesn't prevent this - it would be backwards-compatible by defaulting `TContext` to `unknown`.
+
+However, based on pragmatic cost-benefit analysis, we predict this won't be necessary. Users who value simplicity will prefer the current pattern.
+
 ## Conclusion
 
 **Declarative routing isn't just about developer experience—it's an enabler for automatic performance optimizations that would be difficult or impossible with imperative APIs.**
