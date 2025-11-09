@@ -1,0 +1,448 @@
+/* ============================================================================
+   Router by Example - Clean Monochromatic Design
+   ============================================================================ */
+
+/* CSS Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Monochromatic Color Palette */
+  --color-bg: #ffffff;
+  --color-text: #000000;
+  --color-text-muted: #666666;
+  --color-border: #dddddd;
+  --color-hover-bg: #f5f5f5;
+  --color-active-bg: #000000;
+  --color-active-text: #ffffff;
+  --color-code-bg: #f8f8f8;
+  --color-inline-code-bg: #eeeeee;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
+
+  /* Spacing (8px grid) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Layout */
+  --sidebar-width: 280px;
+  --content-max-width: 1200px;
+}
+
+html {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================================
+   Layout
+   ============================================================================ */
+
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ============================================================================
+   Sidebar Navigation
+   ============================================================================ */
+
+.sidebar {
+  width: var(--sidebar-width);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+.sidebar-header {
+  padding: var(--space-xl) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+  letter-spacing: -0.02em;
+}
+
+.site-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.nav-sections {
+  flex: 1;
+  padding: var(--space-lg) 0;
+}
+
+.nav-section {
+  margin-bottom: var(--space-lg);
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 0 var(--space-lg);
+  margin-bottom: var(--space-sm);
+}
+
+.nav-list {
+  list-style: none;
+}
+
+.nav-link {
+  display: block;
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  border-left: 2px solid transparent;
+}
+
+.nav-link:hover {
+  background-color: var(--color-hover-bg);
+}
+
+.nav-link.active {
+  background-color: var(--color-active-bg);
+  color: var(--color-active-text);
+  border-left-color: var(--color-active-bg);
+  font-weight: 500;
+}
+
+.sidebar-footer {
+  padding: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.github-link {
+  display: inline-block;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-decoration: none;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  transition: all 0.15s ease;
+}
+
+.github-link:hover {
+  background-color: var(--color-active-bg);
+  color: var(--color-active-text);
+  border-color: var(--color-active-bg);
+}
+
+/* ============================================================================
+   Main Content
+   ============================================================================ */
+
+.content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: var(--space-2xl) var(--space-xl);
+  max-width: var(--content-max-width);
+}
+
+#tutorial-content {
+  max-width: 900px;
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ============================================================================
+   Typography
+   ============================================================================ */
+
+.example-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.example-description {
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-xl);
+  line-height: 1.6;
+}
+
+.section-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-md);
+  letter-spacing: -0.02em;
+}
+
+.subsection-heading {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+
+p {
+  margin-bottom: var(--space-md);
+  line-height: 1.7;
+}
+
+/* ============================================================================
+   Code Blocks
+   ============================================================================ */
+
+.code-block {
+  margin: var(--space-lg) 0;
+  border: 1px solid var(--color-border);
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-hover-bg);
+}
+
+.code-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-mono);
+}
+
+.copy-button {
+  font-size: 0.75rem;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s ease;
+}
+
+.copy-button:hover {
+  background-color: var(--color-active-bg);
+  color: var(--color-active-text);
+  border-color: var(--color-active-bg);
+}
+
+.copy-button:active {
+  transform: scale(0.98);
+}
+
+pre {
+  margin: 0;
+  padding: var(--space-lg);
+  background-color: var(--color-code-bg);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+/* Inline code */
+p code, li code {
+  background-color: var(--color-inline-code-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+/* Code annotations */
+.code-annotation {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ============================================================================
+   Demo Frame
+   ============================================================================ */
+
+.demo-frame {
+  margin: var(--space-xl) 0;
+  border: 1px solid var(--color-border);
+}
+
+.demo-header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-hover-bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.demo-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reset-button {
+  font-size: 0.75rem;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reset-button:hover {
+  background-color: var(--color-active-bg);
+  color: var(--color-active-text);
+  border-color: var(--color-active-bg);
+}
+
+.demo-content {
+  padding: var(--space-lg);
+  min-height: 200px;
+  background-color: var(--color-bg);
+}
+
+.demo-output {
+  padding: var(--space-md);
+  background-color: var(--color-code-bg);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* ============================================================================
+   Navigation Controls
+   ============================================================================ */
+
+.navigation-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.nav-button:hover {
+  background-color: var(--color-active-bg);
+  color: var(--color-active-text);
+  border-color: var(--color-active-bg);
+}
+
+.nav-button.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   Lists
+   ============================================================================ */
+
+.content ul, .content ol {
+  margin-left: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+
+.content li {
+  margin-bottom: var(--space-sm);
+  line-height: 1.7;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .content {
+    margin-left: 0;
+    padding: var(--space-lg) var(--space-md);
+  }
+}
+
+/* ============================================================================
+   Utilities
+   ============================================================================ */
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.mb-0 { margin-bottom: 0; }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.mb-xl { margin-bottom: var(--space-xl); }
+
+.mt-0 { margin-top: 0; }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Router by Example | @overhead/router</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <header class="sidebar-header">
+        <h1 class="site-title">Router by Example</h1>
+        <p class="site-subtitle">Learn @overhead/router from zero to hero</p>
+      </header>
+
+      <div class="nav-sections">
+        <section class="nav-section">
+          <h2 class="section-title">Beginner</h2>
+          <ul class="nav-list">
+            <li><a href="/examples/01-hello-router" class="nav-link">01. Hello Router</a></li>
+            <li><a href="/examples/02-multiple-routes" class="nav-link">02. Multiple Routes</a></li>
+            <li><a href="/examples/03-link-navigation" class="nav-link">03. Link Navigation</a></li>
+            <li><a href="/examples/04-route-parameters" class="nav-link">04. Route Parameters</a></li>
+            <li><a href="/examples/05-using-parameters" class="nav-link">05. Using Parameters</a></li>
+          </ul>
+        </section>
+
+        <section class="nav-section">
+          <h2 class="section-title">Intermediate</h2>
+          <ul class="nav-list">
+            <li><a href="/examples/06-query-strings" class="nav-link">06. Query Strings</a></li>
+            <li><a href="/examples/07-hash-navigation" class="nav-link">07. Hash Navigation</a></li>
+            <li><a href="/examples/08-data-loaders" class="nav-link">08. Data Loaders</a></li>
+            <li><a href="/examples/09-abort-signals" class="nav-link">09. Abort Signals</a></li>
+            <li><a href="/examples/10-basic-guards" class="nav-link">10. Route Guards (Basic)</a></li>
+          </ul>
+        </section>
+
+        <section class="nav-section">
+          <h2 class="section-title">Advanced</h2>
+          <ul class="nav-list">
+            <li><a href="/examples/11-enhanced-guards" class="nav-link">11. Enhanced Guards</a></li>
+            <li><a href="/examples/12-nested-routes" class="nav-link">12. Nested Routes</a></li>
+            <li><a href="/examples/13-cache-strategies" class="nav-link">13. Cache Strategies</a></li>
+            <li><a href="/examples/14-redirects" class="nav-link">14. Programmatic Redirects</a></li>
+            <li><a href="/examples/15-subscriptions" class="nav-link">15. Route Subscriptions</a></li>
+          </ul>
+        </section>
+
+        <section class="nav-section">
+          <h2 class="section-title">Expert</h2>
+          <ul class="nav-list">
+            <li><a href="/examples/16-breadcrumbs" class="nav-link">16. Breadcrumbs</a></li>
+            <li><a href="/examples/17-prefetching" class="nav-link">17. Route Prefetching</a></li>
+            <li><a href="/examples/18-active-links" class="nav-link">18. Active Link Styling</a></li>
+            <li><a href="/examples/19-error-handling" class="nav-link">19. Error Handling</a></li>
+            <li><a href="/examples/20-full-app" class="nav-link">20. Full App Pattern</a></li>
+          </ul>
+        </section>
+      </div>
+
+      <footer class="sidebar-footer">
+        <a href="https://github.com/lelandhusband/overhead-router" class="github-link" target="_blank" rel="noopener">
+          View on GitHub
+        </a>
+      </footer>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="content">
+      <div id="tutorial-content">
+        <!-- Dynamic content loaded here -->
+        <div class="loading">Loading...</div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="tutorial.js"></script>
+</body>
+</html>
